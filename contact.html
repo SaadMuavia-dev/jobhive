@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact Us — JobHive</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐝</text></svg>">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .contact-info-card {
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: var(--card-shadow);
+      padding: 1.4rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      border-left: 4px solid transparent;
+      transition: border-color .2s, transform .2s, box-shadow .2s;
+    }
+    .contact-info-card:hover {
+      border-left-color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(10,35,66,.13);
+    }
+    .ci-icon-wrap {
+      width: 44px; height: 44px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem; color: #fff;
+      margin-bottom: 10px;
+      flex-shrink: 0;
+    }
+    .contact-info-card h6 {
+      font-family: var(--font-head);
+      font-weight: 700;
+      color: var(--primary);
+      margin: 0 0 2px;
+      font-size: .95rem;
+    }
+    .ci-label { color: var(--muted); font-size: .82rem; margin: 0; }
+    .ci-link { color: var(--primary); font-weight: 600; font-size: .88rem; text-decoration: none; word-break: break-word; }
+    .ci-link:hover { color: var(--accent); }
+    .ci-social-btn {
+      width: 34px; height: 34px;
+      border-radius: 8px;
+      background: var(--light-bg);
+      color: var(--primary);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .95rem;
+      text-decoration: none;
+      transition: background .2s, color .2s;
+    }
+    .ci-social-btn:hover { background: var(--primary); color: #fff; }
+    .contact-form-wrap {
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: var(--card-shadow);
+      padding: 2.5rem;
+    }
+    #contact-login-wall {
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: var(--card-shadow);
+      padding: 3rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<div id="toast-container"></div>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg sticky-top">
+  <div class="container">
+    <a class="navbar-brand" href="index.html" style="display:flex;align-items:center;gap:2px"><svg width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle;margin-right:7px;flex-shrink:0"><rect width="38" height="38" rx="11" fill="#f7b731"/><path d="M19 7 L25 11 L25 19 L19 23 L13 19 L13 11 Z" fill="#0a2342"/><path d="M19 11 L23 13.5 L23 18.5 L19 21 L15 18.5 L15 13.5 Z" fill="#f7b731"/><circle cx="19" cy="16" r="2.2" fill="#0a2342"/><line x1="9" y1="12" x2="13" y2="15" stroke="#0a2342" stroke-width="1.8" stroke-linecap="round"/><line x1="9" y1="10" x2="13" y2="12" stroke="#0a2342" stroke-width="1.8" stroke-linecap="round"/><line x1="29" y1="12" x2="25" y2="15" stroke="#0a2342" stroke-width="1.8" stroke-linecap="round"/><line x1="29" y1="10" x2="25" y2="12" stroke="#0a2342" stroke-width="1.8" stroke-linecap="round"/><rect x="15" y="23" width="2.5" height="6" rx="1.25" fill="#0a2342"/><rect x="20.5" y="23" width="2.5" height="6" rx="1.25" fill="#0a2342"/></svg><span style="font-family:var(--font-head);font-weight:800;font-size:1.4rem;letter-spacing:-.5px">Job<span style="color:var(--accent)">Hive</span></span></a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="jobs.html">Browse Jobs</a></li>
+        <li class="nav-item"><a class="nav-link" href="companies.html">Companies</a></li>
+        <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
+        <li class="nav-item"><a class="nav-link active" href="contact.html">Contact</a></li>
+        <li class="nav-item" id="nav-post-job-li" style="display:none"><a class="nav-link" href="post-job.html" style="color:var(--accent);font-weight:700"><i class="bi bi-plus-circle me-1"></i>Post a Job</a></li>
+      </ul>
+      <div class="d-none align-items-center gap-2" id="auth-btns" style="display:none">
+        <button class="btn btn-outline-light btn-sm" data-bs-toggle="modal" data-bs-target="#authModal" onclick="setTimeout(()=>document.getElementById('login-tab').click(),100)">Login</button>
+        <button class="btn btn-accent btn-sm" data-bs-toggle="modal" data-bs-target="#authModal" onclick="setTimeout(()=>document.getElementById('signup-tab').click(),100)">Sign Up</button>
+      </div>
+      <div class="d-none align-items-center gap-2" id="user-menu" style="display:none">
+        <div class="dropdown">
+          <button class="user-nav-btn dropdown-toggle" data-bs-toggle="dropdown">
+            <i class="bi bi-person-circle"></i> <span id="nav-username">User</span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="#" onclick="openProfileModal();return false"><i class="bi bi-person me-2"></i>My Profile</a></li>
+            <li><a class="dropdown-item" href="#" onclick="openSavedJobsModal();return false"><i class="bi bi-bookmark me-2"></i>My Applications</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item text-danger" href="#" id="logout-btn"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- PAGE HERO -->
+<section style="background:linear-gradient(135deg,var(--primary) 60%,#1a3a6e 100%);padding:80px 0 60px">
+  <div class="container text-center">
+    <p class="text-warning fw-bold mb-2" style="letter-spacing:2px;font-size:.85rem;">✦ GET IN TOUCH</p>
+    <h1 style="font-family:var(--font-head);font-size:2.8rem;font-weight:800;color:#fff;">Contact <span style="color:var(--accent)">Us</span></h1>
+    <p style="color:rgba(255,255,255,.7);font-size:1.1rem;max-width:520px;margin:1rem auto 0">Have a question, feedback, or partnership inquiry? We'd love to hear from you.</p>
+  </div>
+</section>
+
+<!-- CONTACT SECTION -->
+<section class="py-5">
+  <div class="container">
+    <div class="row g-5">
+
+      <!-- LEFT: Info cards -->
+      <div class="col-lg-4">
+        <div class="row g-3">
+          <div class="col-12">
+            <div class="contact-info-card">
+              <div class="ci-icon-wrap" style="background:linear-gradient(135deg,var(--primary),#1a3a6e)">
+                <i class="bi bi-envelope-fill"></i>
+              </div>
+              <h6>Email Us</h6>
+              <p class="ci-label">General inquiries</p>
+              <a href="mailto:hello@jobhive.pk" class="ci-link">hello@jobhive.pk</a>
+              <p class="ci-label" style="margin-top:.6rem">Employer &amp; partnerships</p>
+              <a href="mailto:partners@jobhive.pk" class="ci-link">partners@jobhive.pk</a>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="contact-info-card">
+              <div class="ci-icon-wrap" style="background:linear-gradient(135deg,var(--primary),#1a3a6e)">
+                <i class="bi bi-telephone-fill"></i>
+              </div>
+              <h6>Call Us</h6>
+              <p class="ci-label">Mon–Fri, 9am–6pm</p>
+              <a href="tel:+922134567890" class="ci-link">+92 21 3456 7890</a>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="contact-info-card">
+              <div class="ci-icon-wrap" style="background:linear-gradient(135deg,var(--accent),#e0900a)">
+                <i class="bi bi-clock-fill" style="color:var(--primary)"></i>
+              </div>
+              <h6>Response</h6>
+              <p class="ci-label">Business days</p>
+              <span class="ci-link">Within 24 hrs</span>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="contact-info-card">
+              <div class="ci-icon-wrap" style="background:linear-gradient(135deg,#2ecc71,#1a8a4a)">
+                <i class="bi bi-geo-alt-fill"></i>
+              </div>
+              <h6>Visit Us</h6>
+              <p class="ci-label">Head Office, Karachi</p>
+              <span class="ci-link">Office 7B, PECHS Block 6, Karachi, Pakistan</span>
+            </div>
+          </div>
+          <!-- Social quick links -->
+          <div class="col-12">
+            <div class="contact-info-card" style="flex-direction:row;align-items:center;gap:12px;flex-wrap:wrap">
+              <span style="font-family:var(--font-head);font-weight:700;color:var(--primary);font-size:.9rem">Follow Us:</span>
+              <div class="d-flex gap-2">
+                <a href="#" class="ci-social-btn"><i class="bi bi-facebook"></i></a>
+                <a href="#" class="ci-social-btn"><i class="bi bi-twitter-x"></i></a>
+                <a href="#" class="ci-social-btn"><i class="bi bi-linkedin"></i></a>
+                <a href="#" class="ci-social-btn"><i class="bi bi-instagram"></i></a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Contact form -->
+      <div class="col-lg-8">
+
+        <!-- Login wall — shown when not logged in -->
+        <div id="contact-login-wall">
+          <div style="font-size:4rem;margin-bottom:1rem">🔒</div>
+          <h4 style="font-family:var(--font-head);color:var(--primary);font-weight:800">Login Required</h4>
+          <p style="color:var(--muted);max-width:420px;margin:.75rem auto 1.5rem">To send us a message, please login to your account first. Don't have one? Signing up is free and takes 30 seconds.</p>
+          <div class="d-flex gap-3 justify-content-center flex-wrap">
+            <button class="btn px-4 py-2" style="background:var(--primary);color:#fff;border-radius:10px;font-weight:700"
+              data-bs-toggle="modal" data-bs-target="#authModal"
+              onclick="setTimeout(()=>document.getElementById('login-tab').click(),100)">
+              <i class="bi bi-box-arrow-in-right me-2"></i>Login
+            </button>
+            <button class="btn px-4 py-2" style="background:var(--accent);color:var(--primary);border-radius:10px;font-weight:700"
+              data-bs-toggle="modal" data-bs-target="#authModal"
+              onclick="setTimeout(()=>document.getElementById('signup-tab').click(),100)">
+              <i class="bi bi-person-plus me-2"></i>Sign Up Free
+            </button>
+          </div>
+        </div>
+
+        <!-- Contact form — shown when logged in -->
+        <div class="contact-form-wrap" id="contact-form-wrap" style="display:none">
+          <h4 style="font-family:var(--font-head);color:var(--primary);font-weight:800;margin-bottom:1.5rem">Send Us a Message</h4>
+          <form id="contact-form" novalidate>
+            <div class="row g-3">
+              <div class="col-sm-6">
+                <label class="form-label fw-600">Your Name</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-person"></i></span>
+                  <input type="text" id="contact-name" class="form-control" placeholder="Full name" required />
+                </div>
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label fw-600">Your Email</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                  <input type="email" id="contact-email" class="form-control" placeholder="you@email.com" required />
+                </div>
+              </div>
+              <div class="col-12">
+                <label class="form-label fw-600">Subject</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-chat-square-text"></i></span>
+                  <select id="contact-subject" class="form-select">
+                    <option value="">Select a subject…</option>
+                    <option>General Inquiry</option>
+                    <option>Job Posting Issue</option>
+                    <option>Account Problem</option>
+                    <option>Partnership / Employer</option>
+                    <option>Report a Bug</option>
+                    <option>Other</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-12">
+                <label class="form-label fw-600">Message</label>
+                <textarea id="contact-message" class="form-control" rows="6" placeholder="Write your message here…" required style="border-radius:10px;font-family:var(--font-body)"></textarea>
+              </div>
+              <div class="col-12">
+                <button type="submit" class="btn w-100 py-3" style="background:var(--primary);color:#fff;border-radius:12px;font-family:var(--font-head);font-weight:700;font-size:1rem">
+                  <i class="bi bi-send me-2"></i>Send Message
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MAP PLACEHOLDER -->
+<section class="pb-5">
+  <div class="container">
+    <div class="rounded-4 overflow-hidden" style="height:280px;background:linear-gradient(135deg,var(--light-bg),#e0e7f5);display:flex;align-items:center;justify-content:center;box-shadow:var(--card-shadow)">
+      <div class="text-center">
+        <div style="font-size:3rem">📍</div>
+        <p style="color:var(--muted);margin-top:.5rem">PECHS Block 6, Karachi, Pakistan</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-4">
+        <div class="footer-brand mb-3" style="display:flex;align-items:center;gap:6px"><svg width="32" height="32" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="38" height="38" rx="11" fill="#f7b731"/><path d="M19 7 L25 11 L25 19 L19 23 L13 19 L13 11 Z" fill="#0a2342"/><path d="M19 11 L23 13.5 L23 18.5 L19 21 L15 18.5 L15 13.5 Z" fill="#f7b731"/><circle cx="19" cy="16" r="2.2" fill="#0a2342"/><line x1="9" y1="12" x2="13" y2="15" stroke="#0a2342" stroke-width="1.8" stroke-linecap="round"/><line x1="29" y1="12" x2="25" y2="15" stroke="#0a2342" stroke-width="1.8" stroke-linecap="round"/><rect x="15" y="23" width="2.5" height="6" rx="1.25" fill="#0a2342"/><rect x="20.5" y="23" width="2.5" height="6" rx="1.25" fill="#0a2342"/></svg><span>Job<span style="color:var(--accent)">Hive</span></span></div>
+        <p style="color:rgba(255,255,255,.6);font-size:.9rem;max-width:280px">Pakistan's leading job portal connecting talent with opportunity since 2020.</p>
+        <div class="footer-social mt-3">
+          <a href="#"><i class="bi bi-facebook"></i></a>
+          <a href="#"><i class="bi bi-twitter-x"></i></a>
+          <a href="#"><i class="bi bi-linkedin"></i></a>
+          <a href="#"><i class="bi bi-instagram"></i></a>
+        </div>
+      </div>
+      <div class="col-6 col-lg-2">
+        <h5>Company</h5>
+        <a href="about.html">About Us</a>
+        <a href="#">Careers</a>
+        <a href="#">Blog</a>
+        <a href="contact.html">Contact</a>
+      </div>
+      <div class="col-6 col-lg-2">
+        <h5>For Job Seekers</h5>
+        <a href="jobs.html">Browse Jobs</a>
+        <a href="#">Upload Resume</a>
+        <a href="#">Job Alerts</a>
+        <a href="#">Career Tips</a>
+      </div>
+      <div class="col-6 col-lg-2">
+        <h5>For Employers</h5>
+        <a href="#">Post a Job</a>
+        <a href="companies.html">Company Profiles</a>
+        <a href="#">Pricing Plans</a>
+        <a href="#">Recruiter Tools</a>
+      </div>
+      <div class="col-6 col-lg-2">
+        <h5>Legal</h5>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
+        <a href="#">Cookie Policy</a>
+        <a href="#">GDPR</a>
+      </div>
+    </div>
+    <div class="footer-bottom d-flex flex-wrap justify-content-between align-items-center">
+      <span>© 2024 JobHive. All rights reserved.</span>
+      <span>Made with ❤️ in Pakistan</span>
+    </div>
+  </div>
+</footer>
+
+<!-- AUTH MODAL -->
+<div class="modal fade" id="authModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Welcome to JobHive</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-0">
+        <ul class="nav auth-tabs border-bottom" style="background:#f8f9fa">
+          <li class="nav-item"><button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login-pane">Login</button></li>
+          <li class="nav-item"><button class="nav-link" id="signup-tab" data-bs-toggle="tab" data-bs-target="#signup-pane">Sign Up</button></li>
+        </ul>
+        <div class="tab-content p-4">
+          <div class="tab-pane fade show active" id="login-pane">
+                        <form id="login-form" novalidate>
+              <div class="mb-3"><label class="form-label">Email Address</label><div class="input-group"><span class="input-group-text"><i class="bi bi-envelope"></i></span><input type="email" name="email" class="form-control" placeholder="you@email.com" required /></div></div>
+              <div class="mb-3"><label class="form-label">Password</label><div class="input-group"><span class="input-group-text"><i class="bi bi-lock"></i></span><input type="password" name="password" class="form-control" placeholder="••••••••" required /></div></div>
+              <button type="submit" class="btn-primary-custom" id="login-btn">Login</button>
+              <p class="text-center mt-3 mb-0" style="font-size:.85rem;color:var(--muted)">No account? <a href="#" onclick="document.getElementById('signup-tab').click();return false" style="color:var(--primary);font-weight:700">Sign up free</a></p>
+            </form>
+          </div>
+          <div class="tab-pane fade" id="signup-pane">
+            <form id="signup-form" novalidate>
+              <div class="mb-3">
+                <label class="form-label">Full Name</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-person"></i></span>
+                  <input type="text" name="name" class="form-control" placeholder="Your full name" required />
+                </div>
+              </div>
+              <div class="row g-2 mb-3">
+                <div class="col-6">
+                  <label class="form-label">City</label>
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-building"></i></span>
+                    <input type="text" name="city" class="form-control" placeholder="Karachi" required />
+                  </div>
+                </div>
+                <div class="col-6">
+                  <label class="form-label">Country</label>
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-globe"></i></span>
+                    <input type="text" name="country" class="form-control" placeholder="Pakistan" required />
+                  </div>
+                </div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Email Address</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                  <input type="email" name="email" class="form-control" placeholder="you@email.com" required />
+                </div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Password</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                  <input type="password" id="signup-password" name="password" class="form-control" placeholder="Min 6 characters" required />
+                </div>
+              </div>
+              <div class="mb-4">
+                <label class="form-label">Confirm Password</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+                  <input type="password" id="signup-confirm" class="form-control" placeholder="Repeat password" required />
+                </div>
+              </div>
+              <button type="submit" class="btn-primary-custom" id="signup-btn">Create Account</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<script src="main.js"></script>
+
+<!-- PROFILE MODAL -->
+<div class="modal fade" id="profileModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header" style="background:linear-gradient(135deg,var(--primary),#1a3a6e)">
+        <h5 class="modal-title" style="color:#fff;font-family:var(--font-head);font-weight:800"><i class="bi bi-person-circle me-2"></i>My Profile</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" style="filter:invert(1)"></button>
+      </div>
+      <div class="modal-body p-4" id="profile-modal-body">
+        <div class="text-center py-4"><div class="spinner-border text-primary"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SAVED JOBS MODAL -->
+<div class="modal fade" id="savedJobsModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header" style="background:linear-gradient(135deg,var(--primary),#1a3a6e)">
+        <h5 class="modal-title" style="color:#fff;font-family:var(--font-head);font-weight:800"><i class="bi bi-bookmark-check me-2"></i>My Applications</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" style="filter:invert(1)"></button>
+      </div>
+      <div class="modal-body p-4" id="saved-jobs-body">
+        <div class="text-center py-4"><div class="spinner-border text-primary"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

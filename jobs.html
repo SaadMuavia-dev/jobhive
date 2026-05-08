@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Browse Jobs — JobHive</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐝</text></svg>">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .filter-sidebar { background:#fff; border-radius:var(--radius); box-shadow:var(--card-shadow); padding:1.5rem; position:sticky; top:80px; }
+    .filter-sidebar h6 { font-family:var(--font-head); color:var(--primary); font-weight:700; margin-bottom:.75rem; }
+    .filter-sidebar .form-check-label { font-size:.92rem; color:var(--text); }
+    .job-list-card { background:#fff; border-radius:var(--radius); box-shadow:var(--card-shadow); padding:1.5rem; transition:transform .2s,box-shadow .2s; cursor:pointer; }
+    .job-list-card:hover { transform:translateY(-3px); box-shadow:0 8px 32px rgba(10,35,66,.15); }
+    .jlc-logo { width:52px; height:52px; border-radius:12px; background:var(--light-bg); display:flex; align-items:center; justify-content:center; font-size:1.8rem; flex-shrink:0; }
+    .jlc-title { font-family:var(--font-head); font-weight:700; color:var(--primary); font-size:1.05rem; }
+    .jlc-company { color:var(--muted); font-size:.9rem; }
+    .jlc-meta span { font-size:.82rem; color:var(--muted); }
+    .badge-type { background:rgba(10,35,66,.08); color:var(--primary); border-radius:20px; padding:3px 12px; font-size:.78rem; font-weight:600; }
+    .badge-remote { background:rgba(46,204,113,.12); color:#1a8a4a; border-radius:20px; padding:3px 12px; font-size:.78rem; font-weight:600; }
+    .badge-hot { background:#ff4757; color:#fff; border-radius:20px; padding:3px 10px; font-size:.75rem; font-weight:700; }
+    .badge-new { background:var(--accent); color:var(--primary); border-radius:20px; padding:3px 10px; font-size:.75rem; font-weight:700; }
+    .salary-tag { font-family:var(--font-head); font-weight:700; color:var(--primary); font-size:.95rem; }
+    .search-bar-jobs { background:#fff; border-radius:var(--radius); box-shadow:var(--card-shadow); padding:1rem 1.25rem; display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:1.5rem; }
+    .search-bar-jobs input { border:1.5px solid #e0e7f5; border-radius:8px; padding:8px 14px; font-family:var(--font-body); font-size:.95rem; outline:none; flex:1; min-width:180px; }
+    .search-bar-jobs input:focus { border-color:var(--primary); }
+    .search-bar-jobs select { border:1.5px solid #e0e7f5; border-radius:8px; padding:8px 14px; font-family:var(--font-body); font-size:.95rem; outline:none; background:#fff; }
+    .search-bar-jobs .btn { background:var(--primary); color:#fff; border-radius:8px; font-weight:700; border:none; padding:8px 24px; }
+    .pagination .page-link { color:var(--primary); font-family:var(--font-head); font-weight:600; border-radius:8px!important; margin:0 2px; border:none; background:var(--light-bg); }
+    .pagination .page-item.active .page-link { background:var(--primary); color:#fff; }
+    .no-results { text-align:center; padding:3rem; color:var(--muted); }
+  </style>
+</head>
+<body>
+
+<div id="toast-container"></div>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg sticky-top">
+  <div class="container">
+    <a class="navbar-brand" href="index.html" style="display:flex;align-items:center;gap:2px"><svg width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle;margin-right:7px;flex-shrink:0"><rect width="38" height="38" rx="11" fill="#f7b731"/><path d="M19 7 L25 11 L25 19 L19 23 L13 19 L13 11 Z" fill="#0a2342"/><path d="M19 11 L23 13.5 L23 18.5 L19 21 L15 18.5 L15 13.5 Z" fill="#f7b731"/><circle cx="19" cy="16" r="2.2" fill="#0a2342"/><line x1="9" y1="12" x2="13" y2="15" stroke="#0a2342" stroke-width="1.8" stroke-linecap="round"/><line x1="9" y1="10" x2="13" y2="12" stroke="#0a2342" stroke-width="1.8" stroke-linecap="round"/><line x1="29" y1="12" x2="25" y2="15" stroke="#0a2342" stroke-width="1.8" stroke-linecap="round"/><line x1="29" y1="10" x2="25" y2="12" stroke="#0a2342" stroke-width="1.8" stroke-linecap="round"/><rect x="15" y="23" width="2.5" height="6" rx="1.25" fill="#0a2342"/><rect x="20.5" y="23" width="2.5" height="6" rx="1.25" fill="#0a2342"/></svg><span style="font-family:var(--font-head);font-weight:800;font-size:1.4rem;letter-spacing:-.5px">Job<span style="color:var(--accent)">Hive</span></span></a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+        <li class="nav-item"><a class="nav-link active" href="jobs.html">Browse Jobs</a></li>
+        <li class="nav-item"><a class="nav-link" href="companies.html">Companies</a></li>
+        <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
+        <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
+        <li class="nav-item" id="nav-post-job-li" style="display:none"><a class="nav-link" href="post-job.html" style="color:var(--accent);font-weight:700"><i class="bi bi-plus-circle me-1"></i>Post a Job</a></li>
+      </ul>
+      <div class="d-none align-items-center gap-2" id="auth-btns" style="display:none">
+        <button class="btn btn-outline-light btn-sm" data-bs-toggle="modal" data-bs-target="#authModal" onclick="setTimeout(()=>document.getElementById('login-tab').click(),100)">Login</button>
+        <button class="btn btn-accent btn-sm" data-bs-toggle="modal" data-bs-target="#authModal" onclick="setTimeout(()=>document.getElementById('signup-tab').click(),100)">Sign Up</button>
+      </div>
+      <div class="d-none align-items-center gap-2" id="user-menu" style="display:none">
+        <div class="dropdown">
+          <button class="user-nav-btn dropdown-toggle" data-bs-toggle="dropdown">
+            <i class="bi bi-person-circle"></i> <span id="nav-username">User</span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="#" onclick="openProfileModal();return false"><i class="bi bi-person me-2"></i>My Profile</a></li>
+            <li><a class="dropdown-item" href="#" onclick="openSavedJobsModal();return false"><i class="bi bi-bookmark me-2"></i>My Applications</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item text-danger" href="#" id="logout-btn"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- PAGE HERO -->
+<section style="background:linear-gradient(135deg,var(--primary) 60%,#1a3a6e 100%);padding:60px 0 50px">
+  <div class="container text-center">
+    <h1 style="font-family:var(--font-head);font-size:2.4rem;font-weight:800;color:#fff;">Browse <span style="color:var(--accent)">Jobs</span></h1>
+    <p style="color:rgba(255,255,255,.7);font-size:1rem;margin:.5rem 0 0">50,000+ verified listings waiting for you</p>
+  </div>
+</section>
+
+<section class="py-5">
+  <div class="container">
+    <!-- Search bar -->
+    <div class="search-bar-jobs">
+      <i class="bi bi-search" style="color:var(--muted)"></i>
+      <input type="text" id="job-search" placeholder="Search job title, company, or skill…" />
+      <select id="filter-location">
+        <option value="">All Locations</option>
+        <option>Remote</option>
+        <option>Karachi</option>
+        <option>Lahore</option>
+        <option>Islamabad</option>
+      </select>
+      <select id="filter-type">
+        <option value="">All Types</option>
+        <option value="Full-time">Full-time</option>
+        <option value="Part-time">Part-time</option>
+        <option value="Freelance">Freelance</option>
+        <option value="Contract">Contract</option>
+        <option value="Internship">Internship</option>
+      </select>
+      <button onclick="filterJobs()"><i class="bi bi-search me-1"></i>Search</button>
+    </div>
+
+    <div class="row g-4">
+      <!-- Sidebar filters -->
+      <div class="col-lg-3 d-none d-lg-block">
+        <div class="filter-sidebar">
+          <h6>Category</h6>
+          <div class="d-flex flex-column gap-1 mb-4">
+            <div class="form-check"><input class="form-check-input" type="checkbox" value="Technology" id="cat-tech" onchange="filterJobs()"><label class="form-check-label" for="cat-tech">Technology</label></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" value="Design" id="cat-design" onchange="filterJobs()"><label class="form-check-label" for="cat-design">Design & Creative</label></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" value="Marketing" id="cat-mkt" onchange="filterJobs()"><label class="form-check-label" for="cat-mkt">Marketing</label></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" value="Finance" id="cat-fin" onchange="filterJobs()"><label class="form-check-label" for="cat-fin">Finance</label></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" value="Healthcare" id="cat-health" onchange="filterJobs()"><label class="form-check-label" for="cat-health">Healthcare</label></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" value="Engineering" id="cat-eng" onchange="filterJobs()"><label class="form-check-label" for="cat-eng">Engineering</label></div>
+          </div>
+
+          <h6>Experience</h6>
+          <div class="d-flex flex-column gap-1 mb-4">
+            <div class="form-check"><input class="form-check-input" type="checkbox" value="Entry" id="exp-entry" onchange="filterJobs()"><label class="form-check-label" for="exp-entry">Entry Level</label></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" value="Mid" id="exp-mid" onchange="filterJobs()"><label class="form-check-label" for="exp-mid">Mid Level</label></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" value="Senior" id="exp-senior" onchange="filterJobs()"><label class="form-check-label" for="exp-senior">Senior Level</label></div>
+          </div>
+
+          <h6>Work Mode</h6>
+          <div class="d-flex flex-column gap-1 mb-4">
+            <div class="form-check"><input class="form-check-input" type="checkbox" value="Remote" id="mode-remote" onchange="filterJobs()"><label class="form-check-label" for="mode-remote">Remote</label></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" value="Hybrid" id="mode-hybrid" onchange="filterJobs()"><label class="form-check-label" for="mode-hybrid">Hybrid</label></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" value="Onsite" id="mode-onsite" onchange="filterJobs()"><label class="form-check-label" for="mode-onsite">On-site</label></div>
+          </div>
+
+          <button class="btn btn-sm w-100" style="background:var(--light-bg);color:var(--primary);border-radius:8px;font-weight:600" onclick="clearFilters()">Clear All Filters</button>
+        </div>
+      </div>
+
+      <!-- Job listings -->
+      <div class="col-lg-9">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <p style="color:var(--muted);margin:0" id="results-count">Showing <strong>18</strong> jobs</p>
+          <select class="form-select form-select-sm w-auto" style="font-family:var(--font-body)">
+            <option>Most Relevant</option>
+            <option>Newest First</option>
+            <option>Salary: High to Low</option>
+          </select>
+        </div>
+
+        <div id="jobs-list" class="d-flex flex-column gap-3"></div>
+
+        <div class="no-results d-none" id="no-results">
+          <div style="font-size:3rem">🔍</div>
+          <h5 style="font-family:var(--font-head);color:var(--primary)">No jobs found</h5>
+          <p>Try adjusting your search or filters.</p>
+        </div>
+
+        <!-- Pagination -->
+        <nav class="mt-4">
+          <ul class="pagination justify-content-center">
+            <li class="page-item disabled"><a class="page-link" href="#">‹ Prev</a></li>
+            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+            <li class="page-item"><a class="page-link" href="#">2</a></li>
+            <li class="page-item"><a class="page-link" href="#">3</a></li>
+            <li class="page-item"><a class="page-link" href="#">Next ›</a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-4">
+        <div class="footer-brand mb-3" style="display:flex;align-items:center;gap:6px"><svg width="32" height="32" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="38" height="38" rx="11" fill="#f7b731"/><path d="M19 7 L25 11 L25 19 L19 23 L13 19 L13 11 Z" fill="#0a2342"/><path d="M19 11 L23 13.5 L23 18.5 L19 21 L15 18.5 L15 13.5 Z" fill="#f7b731"/><circle cx="19" cy="16" r="2.2" fill="#0a2342"/><line x1="9" y1="12" x2="13" y2="15" stroke="#0a2342" stroke-width="1.8" stroke-linecap="round"/><line x1="29" y1="12" x2="25" y2="15" stroke="#0a2342" stroke-width="1.8" stroke-linecap="round"/><rect x="15" y="23" width="2.5" height="6" rx="1.25" fill="#0a2342"/><rect x="20.5" y="23" width="2.5" height="6" rx="1.25" fill="#0a2342"/></svg><span>Job<span style="color:var(--accent)">Hive</span></span></div>
+        <p style="color:rgba(255,255,255,.6);font-size:.9rem;max-width:280px">Pakistan's leading job portal connecting talent with opportunity since 2020.</p>
+        <div class="footer-social mt-3">
+          <a href="#"><i class="bi bi-facebook"></i></a>
+          <a href="#"><i class="bi bi-twitter-x"></i></a>
+          <a href="#"><i class="bi bi-linkedin"></i></a>
+          <a href="#"><i class="bi bi-instagram"></i></a>
+        </div>
+      </div>
+      <div class="col-6 col-lg-2"><h5>Company</h5><a href="about.html">About Us</a><a href="#">Careers</a><a href="#">Blog</a><a href="contact.html">Contact</a></div>
+      <div class="col-6 col-lg-2"><h5>For Job Seekers</h5><a href="jobs.html">Browse Jobs</a><a href="#">Upload Resume</a><a href="#">Job Alerts</a><a href="#">Career Tips</a></div>
+      <div class="col-6 col-lg-2"><h5>For Employers</h5><a href="#">Post a Job</a><a href="companies.html">Company Profiles</a><a href="#">Pricing Plans</a><a href="#">Recruiter Tools</a></div>
+      <div class="col-6 col-lg-2"><h5>Legal</h5><a href="#">Privacy Policy</a><a href="#">Terms of Service</a><a href="#">Cookie Policy</a><a href="#">GDPR</a></div>
+    </div>
+    <div class="footer-bottom d-flex flex-wrap justify-content-between align-items-center">
+      <span>© 2024 JobHive. All rights reserved.</span>
+      <span>Made with ❤️ in Pakistan</span>
+    </div>
+  </div>
+</footer>
+
+<!-- AUTH MODAL -->
+<div class="modal fade" id="authModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Welcome to JobHive</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-0">
+        <ul class="nav auth-tabs border-bottom" style="background:#f8f9fa">
+          <li class="nav-item"><button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login-pane">Login</button></li>
+          <li class="nav-item"><button class="nav-link" id="signup-tab" data-bs-toggle="tab" data-bs-target="#signup-pane">Sign Up</button></li>
+        </ul>
+        <div class="tab-content p-4">
+          <div class="tab-pane fade show active" id="login-pane">
+                        <form id="login-form" novalidate>
+              <div class="mb-3"><label class="form-label">Email Address</label><div class="input-group"><span class="input-group-text"><i class="bi bi-envelope"></i></span><input type="email" name="email" class="form-control" placeholder="you@email.com" required /></div></div>
+              <div class="mb-3"><label class="form-label">Password</label><div class="input-group"><span class="input-group-text"><i class="bi bi-lock"></i></span><input type="password" name="password" class="form-control" placeholder="••••••••" required /></div></div>
+              <button type="submit" class="btn-primary-custom" id="login-btn">Login</button>
+              <p class="text-center mt-3 mb-0" style="font-size:.85rem;color:var(--muted)">No account? <a href="#" onclick="document.getElementById('signup-tab').click();return false" style="color:var(--primary);font-weight:700">Sign up free</a></p>
+            </form>
+          </div>
+          <div class="tab-pane fade" id="signup-pane">
+            <form id="signup-form" novalidate>
+              <div class="mb-3"><label class="form-label">Full Name</label><div class="input-group"><span class="input-group-text"><i class="bi bi-person"></i></span><input type="text" name="name" class="form-control" placeholder="Your full name" required /></div></div>
+              <div class="row g-2 mb-3">
+                <div class="col-6"><label class="form-label">City</label><div class="input-group"><span class="input-group-text"><i class="bi bi-building"></i></span><input type="text" name="city" class="form-control" placeholder="Karachi" required /></div></div>
+                <div class="col-6"><label class="form-label">Country</label><div class="input-group"><span class="input-group-text"><i class="bi bi-globe"></i></span><input type="text" name="country" class="form-control" placeholder="Pakistan" required /></div></div>
+              </div>
+              <div class="mb-3"><label class="form-label">Email Address</label><div class="input-group"><span class="input-group-text"><i class="bi bi-envelope"></i></span><input type="email" name="email" class="form-control" placeholder="you@email.com" required /></div></div>
+              <div class="mb-3"><label class="form-label">Password</label><div class="input-group"><span class="input-group-text"><i class="bi bi-lock"></i></span><input type="password" id="signup-password" name="password" class="form-control" placeholder="Min 6 characters" required /></div></div>
+              <div class="mb-4"><label class="form-label">Confirm Password</label><div class="input-group"><span class="input-group-text"><i class="bi bi-lock-fill"></i></span><input type="password" id="signup-confirm" class="form-control" placeholder="Repeat password" required /></div></div>
+              <button type="submit" class="btn-primary-custom" id="signup-btn">Create Account</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- APPLY MODAL -->
+<div class="modal fade" id="applyModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header" style="background:linear-gradient(135deg,var(--primary),#1a3a6e)">
+        <div>
+          <h5 class="modal-title" style="color:#fff;font-family:var(--font-head);font-weight:800">Apply for Job</h5>
+          <p class="mb-0" style="color:rgba(255,255,255,.7);font-size:.85rem" id="apply-job-title">Job Title</p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" style="filter:invert(1)"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div id="apply-form-wrap">
+          <p class="text-muted mb-4" style="font-size:.9rem">Fill in your details to submit your application.</p>
+          <form id="apply-form" novalidate>
+            <input type="hidden" name="job_title" id="apply-hidden-title" />
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">Highest Degree <span class="text-danger">*</span></label>
+                <select name="degree" class="form-select" required>
+                  <option value="">— Select Degree —</option>
+                  <option>Matriculation (10th)</option>
+                  <option>Intermediate (12th)</option>
+                  <option>Bachelor's (BS/BA)</option>
+                  <option>Master's (MS/MA/MBA)</option>
+                  <option>PhD / Doctorate</option>
+                  <option>Diploma / Certificate</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Years of Experience <span class="text-danger">*</span></label>
+                <select name="experience" class="form-select" required>
+                  <option value="">— Select Experience —</option>
+                  <option>Fresh Graduate (0 years)</option>
+                  <option>Less than 1 year</option>
+                  <option>1–2 years</option>
+                  <option>3–5 years</option>
+                  <option>5–10 years</option>
+                  <option>10+ years</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Age <span class="text-danger">*</span></label>
+                <input type="number" name="age" class="form-control" placeholder="e.g. 25" min="16" max="70" required />
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Gender <span class="text-danger">*</span></label>
+                <select name="gender" class="form-select" required>
+                  <option value="">— Select —</option>
+                  <option>Male</option>
+                  <option>Female</option>
+                  <option>Non-binary</option>
+                  <option>Prefer not to say</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">City <span class="text-danger">*</span></label>
+                <input type="text" name="city" id="apply-city" class="form-control" placeholder="e.g. Karachi" required />
+              </div>
+              <div class="col-12">
+                <label class="form-label">Country <span class="text-danger">*</span></label>
+                <select name="country" id="apply-country" class="form-select" required>
+                  <option value="">— Select Country —</option>
+                  <option>Pakistan</option>
+                  <option>United States</option>
+                  <option>United Kingdom</option>
+                  <option>Canada</option>
+                  <option>Australia</option>
+                  <option>UAE</option>
+                  <option>Saudi Arabia</option>
+                  <option>Germany</option>
+                  <option>India</option>
+                  <option>Other</option>
+                </select>
+              </div>
+            </div>
+            <div class="mt-4 d-flex gap-3">
+              <button type="button" class="btn btn-outline-secondary flex-shrink-0" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn-primary-custom" id="apply-submit-btn" style="flex:1">Submit Application</button>
+            </div>
+          </form>
+        </div>
+        <div id="apply-success-wrap" style="display:none;flex-direction:column;align-items:center;justify-content:center;padding:3rem 1rem;text-align:center">
+          <div class="success-checkmark"><div class="check-icon">✓</div></div>
+          <h3 style="font-family:var(--font-head);font-weight:800;color:var(--primary);margin-top:1.5rem">Application Submitted! 🎉</h3>
+          <p style="color:var(--muted);max-width:320px;margin:.75rem auto 0">Your application has been received. The employer will review it and reach out to you shortly. Best of luck!</p>
+          <div style="background:var(--light-bg);border-radius:12px;padding:14px 24px;margin-top:1.5rem;font-size:.85rem;color:var(--muted)">
+            <i class="bi bi-clock me-1"></i> Response expected within <strong>3–5 business days</strong>
+          </div>
+          <button id="apply-close-btn" class="btn mt-4 px-5 py-2" style="background:var(--primary);color:#fff;border-radius:10px;font-weight:700">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<script src="main.js"></script>
+<script>
+const JOBS = [
+  { id:1, title:'Senior UI/UX Designer', company:'PixelCraft Studio', logo:'🎨', type:'Full-time', mode:'Remote', location:'Remote', salary:'$80K–$110K/yr', cat:'Design', exp:'Senior', badge:'hot', posted:'2 days ago' },
+  { id:2, title:'Full Stack Developer', company:'NexaTech Solutions', logo:'💻', type:'Full-time', mode:'Onsite', location:'Lahore, PK', salary:'$90K–$130K/yr', cat:'Technology', exp:'Mid', badge:'new', posted:'1 day ago' },
+  { id:3, title:'Digital Marketing Manager', company:'BrandBoost Agency', logo:'📣', type:'Full-time', mode:'Hybrid', location:'Karachi, PK', salary:'$60K–$85K/yr', cat:'Marketing', exp:'Mid', badge:'new', posted:'3 days ago' },
+  { id:4, title:'Data Scientist', company:'InsightAI Labs', logo:'📊', type:'Full-time', mode:'Remote', location:'Remote', salary:'$100K–$140K/yr', cat:'Technology', exp:'Senior', badge:'hot', posted:'5 hours ago' },
+  { id:5, title:'Product Manager', company:'BuildRight Corp', logo:'🏗️', type:'Full-time', mode:'Onsite', location:'Islamabad, PK', salary:'$85K–$120K/yr', cat:'Technology', exp:'Senior', badge:'new', posted:'1 day ago' },
+  { id:6, title:'Cloud DevOps Engineer', company:'SkyOps Infra', logo:'☁️', type:'Contract', mode:'Remote', location:'Remote', salary:'$95K–$135K/yr', cat:'Technology', exp:'Senior', badge:'hot', posted:'2 days ago' },
+  { id:7, title:'React Native Developer', company:'AppForge PK', logo:'📱', type:'Full-time', mode:'Remote', location:'Remote', salary:'$70K–$100K/yr', cat:'Technology', exp:'Mid', badge:'new', posted:'4 days ago' },
+  { id:8, title:'Financial Analyst', company:'PakFinance Group', logo:'💰', type:'Full-time', mode:'Onsite', location:'Karachi, PK', salary:'$50K–$70K/yr', cat:'Finance', exp:'Entry', badge:'', posted:'1 week ago' },
+  { id:9, title:'Graphic Designer', company:'CreativeHub', logo:'🖌️', type:'Freelance', mode:'Remote', location:'Remote', salary:'$30K–$50K/yr', cat:'Design', exp:'Entry', badge:'', posted:'3 days ago' },
+  { id:10, title:'Content Strategist', company:'WordWave Media', logo:'✍️', type:'Part-time', mode:'Hybrid', location:'Lahore, PK', salary:'$25K–$40K/yr', cat:'Marketing', exp:'Entry', badge:'', posted:'6 days ago' },
+  { id:11, title:'Backend Engineer (Python)', company:'DataStream PK', logo:'🐍', type:'Full-time', mode:'Remote', location:'Remote', salary:'$75K–$110K/yr', cat:'Technology', exp:'Mid', badge:'hot', posted:'2 days ago' },
+  { id:12, title:'HR Business Partner', company:'TalentBridge', logo:'🤝', type:'Full-time', mode:'Onsite', location:'Islamabad, PK', salary:'$45K–$65K/yr', cat:'Engineering', exp:'Mid', badge:'', posted:'5 days ago' },
+  { id:13, title:'SEO Specialist', company:'RankUp Digital', logo:'🔍', type:'Full-time', mode:'Remote', location:'Remote', salary:'$35K–$55K/yr', cat:'Marketing', exp:'Entry', badge:'new', posted:'1 day ago' },
+  { id:14, title:'Mechanical Engineer', company:'BuildRight Corp', logo:'⚙️', type:'Full-time', mode:'Onsite', location:'Karachi, PK', salary:'$55K–$80K/yr', cat:'Engineering', exp:'Mid', badge:'', posted:'1 week ago' },
+  { id:15, title:'Nurse Practitioner', company:'HealthFirst Clinic', logo:'🏥', type:'Full-time', mode:'Onsite', location:'Lahore, PK', salary:'$40K–$60K/yr', cat:'Healthcare', exp:'Mid', badge:'hot', posted:'3 days ago' },
+  { id:16, title:'iOS Developer (Swift)', company:'AppForge PK', logo:'🍎', type:'Full-time', mode:'Hybrid', location:'Karachi, PK', salary:'$80K–$115K/yr', cat:'Technology', exp:'Senior', badge:'new', posted:'2 days ago' },
+  { id:17, title:'Social Media Manager', company:'BrandBoost Agency', logo:'📱', type:'Part-time', mode:'Remote', location:'Remote', salary:'$20K–$35K/yr', cat:'Marketing', exp:'Entry', badge:'', posted:'4 days ago' },
+  { id:18, title:'Cybersecurity Analyst', company:'SecureNet PK', logo:'🛡️', type:'Full-time', mode:'Onsite', location:'Islamabad, PK', salary:'$85K–$120K/yr', cat:'Technology', exp:'Senior', badge:'hot', posted:'1 day ago' },
+];
+
+function renderJobs(list) {
+  const container = document.getElementById('jobs-list');
+  const noResults = document.getElementById('no-results');
+  const countEl = document.getElementById('results-count');
+  container.innerHTML = '';
+  if (!list.length) {
+    noResults.classList.remove('d-none');
+    countEl.innerHTML = 'Showing <strong>0</strong> jobs';
+    return;
+  }
+  noResults.classList.add('d-none');
+  countEl.innerHTML = `Showing <strong>${list.length}</strong> jobs`;
+  list.forEach(j => {
+    const badgeHTML = j.badge === 'hot'
+      ? `<span class="badge-hot">HOT</span>`
+      : j.badge === 'new' ? `<span class="badge-new">NEW</span>` : '';
+    const div = document.createElement('div');
+    div.className = 'job-list-card';
+    div.innerHTML = `
+      <div class="d-flex gap-3 align-items-start">
+        <div class="jlc-logo">${j.logo}</div>
+        <div class="flex-grow-1">
+          <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+            <div>
+              <div class="jlc-title">${j.title}</div>
+              <div class="jlc-company">${j.company}</div>
+            </div>
+            <div class="d-flex gap-2 align-items-center">
+              ${badgeHTML}
+              <span class="salary-tag">${j.salary}</span>
+            </div>
+          </div>
+          <div class="d-flex flex-wrap gap-2 mt-2 jlc-meta align-items-center">
+            <span class="badge-type">${j.type}</span>
+            ${j.mode === 'Remote' ? `<span class="badge-remote">Remote</span>` : j.mode === 'Hybrid' ? `<span class="badge-remote" style="background:rgba(247,183,49,.15);color:#b07d00">Hybrid</span>` : ''}
+            <span><i class="bi bi-geo-alt me-1"></i>${j.location}</span>
+            <span><i class="bi bi-clock me-1"></i>${j.posted}</span>
+            <span class="ms-auto">
+              <button class="btn btn-sm" style="background:var(--primary);color:#fff;border-radius:8px;font-weight:600;font-size:.82rem;padding:4px 16px"
+                onclick="applyJob('${j.title}')">Apply Now</button>
+            </span>
+          </div>
+        </div>
+      </div>`;
+    container.appendChild(div);
+  });
+}
+
+function filterJobs() {
+  const q = document.getElementById('job-search').value.toLowerCase();
+  const type = document.getElementById('filter-type').value;
+  const loc = document.getElementById('filter-location').value;
+
+  const checkedCats = [...document.querySelectorAll('[id^="cat-"]:checked')].map(el => el.value);
+  const checkedExps = [...document.querySelectorAll('[id^="exp-"]:checked')].map(el => el.value);
+  const checkedModes = [...document.querySelectorAll('[id^="mode-"]:checked')].map(el => el.value);
+
+  const filtered = JOBS.filter(j => {
+    if (q && !j.title.toLowerCase().includes(q) && !j.company.toLowerCase().includes(q)) return false;
+    if (type && j.type !== type) return false;
+    if (loc && loc !== 'Remote' && !j.location.includes(loc)) return false;
+    if (loc === 'Remote' && j.mode !== 'Remote') return false;
+    if (checkedCats.length && !checkedCats.includes(j.cat)) return false;
+    if (checkedExps.length && !checkedExps.includes(j.exp)) return false;
+    if (checkedModes.length && !checkedModes.includes(j.mode)) return false;
+    return true;
+  });
+  renderJobs(filtered);
+}
+
+function clearFilters() {
+  document.getElementById('job-search').value = '';
+  document.getElementById('filter-type').value = '';
+  document.getElementById('filter-location').value = '';
+  document.querySelectorAll('.filter-sidebar input[type="checkbox"]').forEach(cb => cb.checked = false);
+  renderJobs(JOBS);
+}
+
+document.getElementById('job-search').addEventListener('input', filterJobs);
+document.getElementById('filter-type').addEventListener('change', filterJobs);
+document.getElementById('filter-location').addEventListener('change', filterJobs);
+
+// Pre-fill search from URL query param
+const urlQ = new URLSearchParams(window.location.search).get('q');
+if (urlQ) { document.getElementById('job-search').value = urlQ; }
+
+renderJobs(JOBS);
+filterJobs();
+</script>
+
+<!-- PROFILE MODAL -->
+<div class="modal fade" id="profileModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header" style="background:linear-gradient(135deg,var(--primary),#1a3a6e)">
+        <h5 class="modal-title" style="color:#fff;font-family:var(--font-head);font-weight:800"><i class="bi bi-person-circle me-2"></i>My Profile</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" style="filter:invert(1)"></button>
+      </div>
+      <div class="modal-body p-4" id="profile-modal-body">
+        <div class="text-center py-4"><div class="spinner-border text-primary"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SAVED JOBS MODAL -->
+<div class="modal fade" id="savedJobsModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header" style="background:linear-gradient(135deg,var(--primary),#1a3a6e)">
+        <h5 class="modal-title" style="color:#fff;font-family:var(--font-head);font-weight:800"><i class="bi bi-bookmark-check me-2"></i>My Applications</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" style="filter:invert(1)"></button>
+      </div>
+      <div class="modal-body p-4" id="saved-jobs-body">
+        <div class="text-center py-4"><div class="spinner-border text-primary"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

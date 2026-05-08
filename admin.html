@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JobHive — Admin Panel</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐝</text></svg>">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    :root {
+      --admin-sidebar: #0a2342;
+      --admin-accent:  #f7b731;
+      --admin-bg:      #f0f4f8;
+    }
+    body { background: var(--admin-bg); min-height: 100vh; }
+
+    /* ── Sidebar ── */
+    #admin-sidebar {
+      width: 240px; min-height: 100vh; background: var(--admin-sidebar);
+      position: fixed; top: 0; left: 0; z-index: 1000;
+      display: flex; flex-direction: column;
+      transition: transform .3s;
+    }
+    #admin-sidebar .brand {
+      padding: 1.4rem 1.2rem 1rem;
+      border-bottom: 1px solid rgba(255,255,255,.1);
+      font-weight: 800; font-size: 1.2rem; color: #fff;
+    }
+    #admin-sidebar .brand span { color: var(--admin-accent); }
+    #admin-sidebar .nav-link {
+      color: rgba(255,255,255,.75); padding: .7rem 1.2rem;
+      border-radius: 8px; margin: 2px 8px;
+      display: flex; align-items: center; gap: .65rem;
+      font-weight: 500; transition: all .2s; cursor: pointer; border: none; background: none; width: calc(100% - 16px);
+    }
+    #admin-sidebar .nav-link:hover,
+    #admin-sidebar .nav-link.active {
+      background: rgba(247,183,49,.15); color: var(--admin-accent);
+    }
+    #admin-sidebar .nav-link i { font-size: 1.1rem; width: 20px; }
+    #admin-sidebar .badge-count {
+      margin-left: auto; background: var(--admin-accent);
+      color: #0a2342; font-size: .7rem; font-weight: 700;
+      padding: 2px 7px; border-radius: 20px;
+    }
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 4px 12px; border-radius: 99px; font-size: .8rem; font-weight: 600;
+    }
+    .status-badge.pending  { background:#fff8e1; color:#e6a817; }
+    .status-badge.approved { background:#e8f5e9; color:#2e7d32; }
+    .status-badge.rejected { background:#fce4ec; color:#c62828; }
+    #admin-sidebar .logout-btn {
+      margin-top: auto; padding: 1rem;
+      border-top: 1px solid rgba(255,255,255,.1);
+    }
+
+    /* ── Main content ── */
+    #admin-main {
+      margin-left: 240px; padding: 1.5rem;
+      min-height: 100vh;
+    }
+    .admin-topbar {
+      background: #fff; border-radius: 12px;
+      padding: .8rem 1.2rem; margin-bottom: 1.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+    }
+    .admin-topbar h5 { margin: 0; font-weight: 700; color: var(--admin-sidebar); }
+
+    /* ── Stat cards ── */
+    .stat-card {
+      background: #fff; border-radius: 14px; padding: 1.4rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,.06);
+      display: flex; align-items: center; gap: 1rem;
+      border-left: 4px solid var(--admin-accent);
+    }
+    .stat-icon {
+      width: 52px; height: 52px; border-radius: 12px;
+      background: rgba(247,183,49,.15); display: flex;
+      align-items: center; justify-content: center;
+      font-size: 1.5rem; color: var(--admin-accent); flex-shrink: 0;
+    }
+    .stat-card .stat-val { font-size: 1.8rem; font-weight: 800; color: var(--admin-sidebar); }
+    .stat-card .stat-lbl { font-size: .8rem; color: #888; }
+
+    /* ── Section cards ── */
+    .section-card {
+      background: #fff; border-radius: 14px; padding: 1.4rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,.06); margin-bottom: 1.5rem;
+    }
+    .section-card .sec-title {
+      font-weight: 700; font-size: 1.05rem; color: var(--admin-sidebar);
+      margin-bottom: 1rem; padding-bottom: .6rem;
+      border-bottom: 2px solid var(--admin-accent);
+      display: inline-block;
+    }
+
+    /* ── Tables ── */
+    .admin-table { font-size: .88rem; }
+    .admin-table th { background: var(--admin-sidebar); color: #fff; font-weight: 600; white-space: nowrap; }
+    .admin-table tbody tr:hover { background: rgba(247,183,49,.06); }
+
+    /* ── Status badges ── */
+    .badge-pending     { background: #ffc107; color: #000; }
+    .badge-reviewed    { background: #17a2b8; color: #fff; }
+    .badge-shortlisted { background: #28a745; color: #fff; }
+    .badge-rejected    { background: #dc3545; color: #fff; }
+    .badge-hired       { background: #6f42c1; color: #fff; }
+
+    /* ── Sections toggle ── */
+    .admin-section { display: none; }
+    .admin-section.active { display: block; }
+
+    /* ── Reply modal ── */
+    .reply-box { border: 2px solid var(--admin-accent); border-radius: 10px; padding: 1rem; background: #fffdf0; }
+
+    /* ── Mobile ── */
+    @media (max-width: 767px) {
+      #admin-sidebar { transform: translateX(-100%); }
+      #admin-sidebar.open { transform: translateX(0); }
+      #admin-main { margin-left: 0; padding: 1rem; }
+    }
+
+    /* ── Toast ── */
+    #toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 9999; }
+    .toast-msg {
+      background: #0a2342; color: #fff; padding: .7rem 1.2rem;
+      border-radius: 8px; margin-top: .5rem; font-size: .88rem;
+      animation: slideIn .3s ease;
+    }
+    .toast-msg.error { background: #dc3545; }
+    .toast-msg.success { background: #28a745; }
+    @keyframes slideIn { from { opacity:0; transform:translateX(50px); } to { opacity:1; transform:translateX(0); } }
+  </style>
+</head>
+<body>
+
+<div id="toast-container"></div>
+
+<!-- ── SIDEBAR ── -->
+<div id="admin-sidebar">
+  <div class="brand">
+    🐝 Job<span>Hive</span><br>
+    <small style="font-size:.7rem;font-weight:400;opacity:.6">Admin Panel</small>
+  </div>
+  <nav style="padding:.5rem 0;flex:1">
+    <button class="nav-link active" onclick="showSection('dashboard')">
+      <i class="bi bi-speedometer2"></i> Dashboard
+    </button>
+    <button class="nav-link" onclick="showSection('jobs')">
+      <i class="bi bi-briefcase"></i> Jobs
+      <span class="badge-count" id="jobs-count">0</span>
+    </button>
+    <button class="nav-link" onclick="showSection('add-job')">
+      <i class="bi bi-plus-circle"></i> New Job Post
+    </button>
+    <button class="nav-link" onclick="showSection('pending-jobs')">
+      <i class="bi bi-hourglass-split"></i> Pending Jobs
+      <span class="badge-count" id="pending-count" style="background:#e6a817;color:#fff">0</span>
+    </button>
+    <button class="nav-link" onclick="showSection('applications')">
+      <i class="bi bi-file-earmark-person"></i> Applications
+      <span class="badge-count" id="apps-count">0</span>
+    </button>
+    <button class="nav-link" onclick="showSection('messages')">
+      <i class="bi bi-envelope"></i> Messages
+      <span class="badge-count" id="msgs-count" style="background:#dc3545;color:#fff">0</span>
+    </button>
+  </nav>
+  <div class="logout-btn">
+    <button class="btn btn-outline-warning btn-sm w-100" onclick="doLogout()">
+      <i class="bi bi-box-arrow-left me-1"></i> Logout
+    </button>
+  </div>
+</div>
+
+<!-- ── MAIN ── -->
+<div id="admin-main">
+
+  <!-- Topbar -->
+  <div class="admin-topbar">
+    <div class="d-flex align-items-center gap-2">
+      <button class="btn btn-sm btn-outline-secondary d-md-none" onclick="document.getElementById('admin-sidebar').classList.toggle('open')">
+        <i class="bi bi-list"></i>
+      </button>
+      <h5 id="page-title">Dashboard</h5>
+    </div>
+    <span style="font-size:.85rem;color:#888">
+      <i class="bi bi-person-circle me-1"></i>
+      <span id="admin-name">Admin</span>
+    </span>
+  </div>
+
+  <!-- ══ DASHBOARD ══ -->
+  <div class="admin-section active" id="sec-dashboard">
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-lg-3">
+        <div class="stat-card">
+          <div class="stat-icon"><i class="bi bi-briefcase-fill"></i></div>
+          <div>
+            <div class="stat-val" id="st-jobs">–</div>
+            <div class="stat-lbl">Active Jobs</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="stat-card">
+          <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+          <div>
+            <div class="stat-val" id="st-users">–</div>
+            <div class="stat-lbl">Registered Users</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="stat-card">
+          <div class="stat-icon"><i class="bi bi-file-earmark-person-fill"></i></div>
+          <div>
+            <div class="stat-val" id="st-apps">–</div>
+            <div class="stat-lbl">Total Applications</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="stat-card" style="border-left-color:#dc3545">
+          <div class="stat-icon" style="background:rgba(220,53,69,.1);color:#dc3545"><i class="bi bi-clock-fill"></i></div>
+          <div>
+            <div class="stat-val" id="st-pending">–</div>
+            <div class="stat-lbl">Pending Applications</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="sec-title">Quick Actions</div>
+      <div class="d-flex flex-wrap gap-2">
+        <button class="btn btn-primary" onclick="showSection('add-job')">
+          <i class="bi bi-plus-circle me-1"></i> New Job Post
+        </button>
+        <button class="btn btn-outline-primary" onclick="showSection('applications')">
+          <i class="bi bi-file-earmark-person me-1"></i> View Applications
+        </button>
+        <button class="btn btn-outline-secondary" onclick="showSection('messages')">
+          <i class="bi bi-envelope me-1"></i> View Messages
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ JOBS LIST ══ -->
+  <div class="admin-section" id="sec-jobs">
+    <div class="section-card">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <div class="sec-title mb-0" style="border:none;padding:0">All Jobs</div>
+        <button class="btn btn-sm btn-primary" onclick="showSection('add-job')">
+          <i class="bi bi-plus-circle me-1"></i> Add New
+        </button>
+      </div>
+      <div class="table-responsive">
+        <table class="table admin-table align-middle">
+          <thead>
+            <tr>
+              <th>#</th><th>Job Title</th><th>Company</th><th>Type</th>
+              <th>Applications</th><th>Status</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="jobs-table-body">
+            <tr><td colspan="7" class="text-center py-4 text-muted">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ ADD JOB ══ -->
+  <div class="admin-section" id="sec-add-job">
+    <div class="section-card">
+      <div class="sec-title">Post New Job</div>
+      <form id="add-job-form">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label fw-600">Job Title *</label>
+            <input type="text" name="title" class="form-control" placeholder="e.g. Senior Developer" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-600">Company Name *</label>
+            <input type="text" name="company" class="form-control" placeholder="e.g. TechCorp" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-600">Location</label>
+            <input type="text" name="location" class="form-control" placeholder="e.g. Lahore, PK">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-600">Job Type *</label>
+            <select name="job_type" class="form-select" required>
+              <option value="full-time">Full-Time</option>
+              <option value="part-time">Part-Time</option>
+              <option value="freelance">Freelance</option>
+              <option value="internship">Internship</option>
+              <option value="contract">Contract</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-600">Category</label>
+            <input type="text" name="category" class="form-control" placeholder="e.g. Development">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-600">Min Salary</label>
+            <input type="number" name="salary_min" class="form-control" placeholder="e.g. 50000">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-600">Max Salary</label>
+            <input type="number" name="salary_max" class="form-control" placeholder="e.g. 80000">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-600">Currency</label>
+            <select name="salary_currency" class="form-select">
+              <option value="USD">USD</option>
+              <option value="PKR">PKR</option>
+              <option value="EUR">EUR</option>
+              <option value="GBP">GBP</option>
+            </select>
+          </div>
+          <div class="col-12">
+            <label class="form-label fw-600">Job Description</label>
+            <textarea name="description" class="form-control" rows="4" placeholder="Job description likhein..."></textarea>
+          </div>
+          <div class="col-12">
+            <label class="form-label fw-600">Requirements</label>
+            <textarea name="requirements" class="form-control" rows="3" placeholder="Requirements likhein..."></textarea>
+          </div>
+          <div class="col-md-6">
+            <div class="form-check form-switch mt-2">
+              <input class="form-check-input" type="checkbox" name="is_remote" id="is_remote">
+              <label class="form-check-label fw-600" for="is_remote">Remote Job</label>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-check form-switch mt-2">
+              <input class="form-check-input" type="checkbox" name="is_featured" id="is_featured">
+              <label class="form-check-label fw-600" for="is_featured">Featured Job</label>
+            </div>
+          </div>
+          <div class="col-12">
+            <button type="submit" class="btn btn-primary px-4" id="add-job-btn">
+              <i class="bi bi-send me-1"></i> Post Job
+            </button>
+            <button type="reset" class="btn btn-outline-secondary ms-2">Clear</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ══ PENDING JOBS (User-submitted, awaiting approval) ══ -->
+  <div class="admin-section" id="sec-pending-jobs">
+    <div class="section-card">
+      <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+        <div class="sec-title mb-0" style="border:none;padding:0">⏳ Pending Job Submissions</div>
+        <button class="btn btn-sm btn-outline-secondary" onclick="loadPendingJobs()"><i class="bi bi-arrow-clockwise me-1"></i>Refresh</button>
+      </div>
+      <div id="pending-jobs-list">
+        <p class="text-muted text-center py-3">Loading...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ APPLICATIONS ══ -->
+  <div class="admin-section" id="sec-applications">
+    <div class="section-card">
+      <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+        <div class="sec-title mb-0" style="border:none;padding:0">All Applications</div>
+        <div class="d-flex gap-2 flex-wrap">
+          <select id="filter-status" class="form-select form-select-sm" onchange="loadApplications()">
+            <option value="">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="reviewed">Reviewed</option>
+            <option value="shortlisted">Shortlisted</option>
+            <option value="rejected">Rejected</option>
+            <option value="hired">Hired</option>
+          </select>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="table admin-table align-middle">
+          <thead>
+            <tr>
+              <th>#</th><th>Applicant</th><th>Email</th><th>Job</th>
+              <th>Applied</th><th>Status</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="apps-table-body">
+            <tr><td colspan="7" class="text-center py-4 text-muted">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ MESSAGES ══ -->
+  <div class="admin-section" id="sec-messages">
+    <div class="section-card">
+      <div class="sec-title">Contact Messages</div>
+      <div id="messages-list">
+        <div class="text-center py-4 text-muted">Loading...</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /admin-main -->
+
+<!-- ══ APPLICATION DETAIL MODAL ══ -->
+<div class="modal fade" id="appDetailModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header" style="background:var(--admin-sidebar);color:#fff">
+        <h5 class="modal-title"><i class="bi bi-file-earmark-person me-2"></i>Application Detail</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="app-detail-body">
+        <div class="text-center py-4"><div class="spinner-border text-primary"></div></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ REPLY MODAL ══ -->
+<div class="modal fade" id="replyModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header" style="background:var(--admin-sidebar);color:#fff">
+        <h5 class="modal-title"><i class="bi bi-reply me-2"></i>Reply to Applicant</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="reply-app-id">
+        <div class="mb-3">
+          <label class="form-label fw-bold">To:</label>
+          <div class="reply-box" id="reply-to-info" style="padding:.6rem .9rem;border-radius:8px"></div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-bold">Message / Reply *</label>
+          <textarea id="reply-message" class="form-control" rows="5" 
+            placeholder="Applicant ko apna reply likhein...&#10;Mithalan: Aap ka application review ho gaya hai. Hum aap se contact karein ge..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" onclick="sendReply()" id="send-reply-btn">
+          <i class="bi bi-send me-1"></i> Send Reply
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<script>
+const ADMIN_API = 'api/admin.php';
+const AUTH_API  = 'api/auth.php';
+
+// ── Toast ──────────────────────────────────────────────────
+function toast(msg, type = 'success') {
+  const c = document.getElementById('toast-container');
+  const d = document.createElement('div');
+  d.className = `toast-msg ${type}`;
+  d.textContent = msg;
+  c.appendChild(d);
+  setTimeout(() => d.remove(), 3500);
+}
+
+// ── API helpers ────────────────────────────────────────────
+async function apiGet(url) {
+  const r = await fetch(url, { credentials: 'include' });
+  return r.json();
+}
+async function apiPost(url, data) {
+  const r = await fetch(url, {
+    method: 'POST', credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return r.json();
+}
+
+// ── Auth check ─────────────────────────────────────────────
+async function checkAuth() {
+  const r = await apiGet(AUTH_API + '?action=me');
+  if (!r.success) {
+    window.location.href = 'index.html';
+    return null;
+  }
+  if (r.data.user.role !== 'admin') {
+    alert('Admin access sirf admin k liye hai!');
+    window.location.href = 'index.html';
+    return null;
+  }
+  document.getElementById('admin-name').textContent = r.data.user.name;
+  return r.data.user;
+}
+
+async function doLogout() {
+  await apiPost(AUTH_API + '?action=logout', {});
+  window.location.href = 'index.html';
+}
+
+// ── Section switch ─────────────────────────────────────────
+function showSection(name) {
+  document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('#admin-sidebar .nav-link').forEach(b => b.classList.remove('active'));
+
+  const sec = document.getElementById('sec-' + name);
+  if (sec) sec.classList.add('active');
+
+  const titles = {
+    'dashboard': 'Dashboard', 'jobs': 'Jobs Management',
+    'add-job': 'Post New Job', 'applications': 'Applications',
+    'messages': 'Contact Messages', 'pending-jobs': '⏳ Pending Job Approvals'
+  };
+  document.getElementById('page-title').textContent = titles[name] || name;
+
+  // Active sidebar button
+  const btns = document.querySelectorAll('#admin-sidebar .nav-link');
+  btns.forEach(b => {
+    if (b.getAttribute('onclick')?.includes(`'${name}'`)) b.classList.add('active');
+  });
+
+  // Load data
+  if (name === 'dashboard') loadStats();
+  else if (name === 'jobs') loadJobs();
+  else if (name === 'applications') loadApplications();
+  else if (name === 'messages') loadMessages();
+  else if (name === 'pending-jobs') loadPendingJobs();
+
+  // Mobile: close sidebar
+  document.getElementById('admin-sidebar').classList.remove('open');
+}
+
+// ── DASHBOARD STATS ────────────────────────────────────────
+async function loadStats() {
+  const r = await apiGet(ADMIN_API + '?action=stats');
+  if (!r.success) return;
+  const s = r.data.stats;
+  document.getElementById('st-jobs').textContent    = s.total_jobs;
+  document.getElementById('st-users').textContent   = s.total_users;
+  document.getElementById('st-apps').textContent    = s.total_apps;
+  document.getElementById('st-pending').textContent = s.pending_apps;
+  document.getElementById('jobs-count').textContent = s.total_jobs;
+  document.getElementById('apps-count').textContent = s.total_apps;
+  if (s.unread_msgs > 0)
+    document.getElementById('msgs-count').textContent = s.unread_msgs;
+  else
+    document.getElementById('msgs-count').style.display = 'none';
+
+  // Pending jobs count
+  const prCount = await apiGet('api/post_job.php?action=pending');
+  if (prCount.success) {
+    const pn = prCount.data.jobs.filter(j => j.status === 'pending').length;
+    const el = document.getElementById('pending-count');
+    if (el) { el.textContent = pn; el.style.display = pn > 0 ? '' : 'none'; }
+  }
+}
+
+// ── JOBS TABLE ─────────────────────────────────────────────
+async function loadJobs() {
+  const r = await apiGet(ADMIN_API + '?action=jobs');
+  const tbody = document.getElementById('jobs-table-body');
+  if (!r.success) { tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Error loading jobs.</td></tr>'; return; }
+
+  const jobs = r.data.jobs;
+  if (!jobs.length) { tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">Koi job post nahi hai abhi.</td></tr>'; return; }
+
+  tbody.innerHTML = jobs.map(j => `
+    <tr>
+      <td>${j.id}</td>
+      <td>
+        <div class="fw-600">${esc(j.title)}</div>
+        <small class="text-muted">${j.location || 'Remote'}</small>
+      </td>
+      <td>${esc(j.company)}</td>
+      <td><span class="badge bg-secondary">${j.job_type}</span></td>
+      <td><span class="badge" style="background:#e8f4fd;color:#0369a1">${j.app_count} apps</span></td>
+      <td>
+        <span class="badge ${j.is_active=='1'?'bg-success':'bg-secondary'}">
+          ${j.is_active=='1'?'Active':'Inactive'}
+        </span>
+      </td>
+      <td>
+        <div class="d-flex gap-1 flex-wrap">
+          <button class="btn btn-xs btn-outline-warning" onclick="toggleJob(${j.id})" title="Toggle">
+            <i class="bi bi-toggle-on"></i>
+          </button>
+          <button class="btn btn-xs btn-outline-danger" onclick="deleteJob(${j.id}, '${esc(j.title)}')" title="Delete">
+            <i class="bi bi-trash"></i>
+          </button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+async function toggleJob(id) {
+  const r = await apiPost(ADMIN_API + '?action=toggle_job', { id });
+  if (r.success) { toast('Job status update ho gaya!'); loadJobs(); }
+  else toast(r.error || 'Error.', 'error');
+}
+
+async function deleteJob(id, title) {
+  if (!confirm(`"${title}" delete karna chahte ho?`)) return;
+  const r = await apiPost(ADMIN_API + '?action=delete_job', { id });
+  if (r.success) { toast('Job delete ho gaya!', 'success'); loadJobs(); loadStats(); }
+  else toast(r.error || 'Error.', 'error');
+}
+
+// ── ADD JOB FORM ───────────────────────────────────────────
+document.getElementById('add-job-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('add-job-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Posting...';
+
+  const fd = new FormData(e.target);
+  const data = {
+    title:           fd.get('title'),
+    company:         fd.get('company'),
+    location:        fd.get('location'),
+    job_type:        fd.get('job_type'),
+    category:        fd.get('category'),
+    salary_min:      fd.get('salary_min'),
+    salary_max:      fd.get('salary_max'),
+    salary_currency: fd.get('salary_currency'),
+    description:     fd.get('description'),
+    requirements:    fd.get('requirements'),
+    is_remote:       document.getElementById('is_remote').checked ? 1 : 0,
+    is_featured:     document.getElementById('is_featured').checked ? 1 : 0,
+  };
+
+  const r = await apiPost(ADMIN_API + '?action=add_job', data);
+  btn.disabled = false; btn.innerHTML = '<i class="bi bi-send me-1"></i> Post Job';
+
+  if (r.success) {
+    toast('Job post ho gaya! 🎉');
+    e.target.reset();
+    showSection('jobs');
+  } else {
+    toast(r.error || 'Error posting job.', 'error');
+  }
+});
+
+// ── APPLICATIONS ───────────────────────────────────────────
+async function loadApplications() {
+  const status = document.getElementById('filter-status').value;
+  const url = ADMIN_API + '?action=applications' + (status ? '&status=' + status : '');
+  const r = await apiGet(url);
+  const tbody = document.getElementById('apps-table-body');
+  if (!r.success) { tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Error.</td></tr>'; return; }
+
+  const apps = r.data.applications;
+  if (!apps.length) { tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">Koi application nahi mili.</td></tr>'; return; }
+
+  const statusColors = {
+    pending:'badge-pending', reviewed:'badge-reviewed',
+    shortlisted:'badge-shortlisted', rejected:'badge-rejected', hired:'badge-hired'
+  };
+
+  tbody.innerHTML = apps.map(a => `
+    <tr>
+      <td>${a.id}</td>
+      <td><div class="fw-600">${esc(a.applicant_name)}</div></td>
+      <td><a href="mailto:${esc(a.applicant_email)}">${esc(a.applicant_email)}</a></td>
+      <td>
+        <div>${esc(a.job_title || '–')}</div>
+        <small class="text-muted">${esc(a.company || '')}</small>
+      </td>
+      <td>${formatDate(a.applied_at)}</td>
+      <td>
+        <select class="form-select form-select-sm" onchange="updateStatus(${a.id}, this.value)" style="min-width:110px">
+          ${['pending','reviewed','shortlisted','rejected','hired'].map(s =>
+            `<option value="${s}" ${a.status===s?'selected':''}>${s.charAt(0).toUpperCase()+s.slice(1)}</option>`
+          ).join('')}
+        </select>
+      </td>
+      <td>
+        <div class="d-flex gap-1">
+          <button class="btn btn-xs btn-outline-primary" onclick="viewApp(${a.id})" title="Detail dekhen">
+            <i class="bi bi-eye"></i>
+          </button>
+          <button class="btn btn-xs btn-outline-success" onclick="openReply(${a.id}, '${esc(a.applicant_name)}', '${esc(a.applicant_email)}', '${esc(a.job_title||'')}')">
+            <i class="bi bi-reply"></i>
+          </button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+async function updateStatus(id, status) {
+  const r = await apiPost(ADMIN_API + '?action=update_status', { id, status });
+  if (r.success) toast('Status update ho gaya!');
+  else toast(r.error || 'Error.', 'error');
+}
+
+async function viewApp(id) {
+  document.getElementById('app-detail-body').innerHTML =
+    '<div class="text-center py-4"><div class="spinner-border text-primary"></div></div>';
+  new bootstrap.Modal(document.getElementById('appDetailModal')).show();
+
+  const r = await apiGet(ADMIN_API + `?action=application&id=${id}`);
+  if (!r.success) {
+    document.getElementById('app-detail-body').innerHTML = '<p class="text-danger">Error loading.</p>';
+    return;
+  }
+  const a = r.data.application;
+  document.getElementById('app-detail-body').innerHTML = `
+    <div class="row g-3">
+      <div class="col-md-6">
+        <div class="p-3 rounded" style="background:#f8f9fa">
+          <h6 class="fw-bold mb-3" style="color:#0a2342"><i class="bi bi-person me-2"></i>Applicant Info</h6>
+          <p class="mb-1"><strong>Name:</strong> ${esc(a.applicant_name)}</p>
+          <p class="mb-1"><strong>Email:</strong> <a href="mailto:${esc(a.applicant_email)}">${esc(a.applicant_email)}</a></p>
+          ${a.applicant_phone ? `<p class="mb-1"><strong>Phone:</strong> ${esc(a.applicant_phone)}</p>` : ''}
+          <p class="mb-1"><strong>City:</strong> ${esc(a.city || a.user_city || '–')}</p>
+          <p class="mb-0"><strong>Country:</strong> ${esc(a.country || a.user_country || '–')}</p>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="p-3 rounded" style="background:#f8f9fa">
+          <h6 class="fw-bold mb-3" style="color:#0a2342"><i class="bi bi-briefcase me-2"></i>Application Info</h6>
+          <p class="mb-1"><strong>Job:</strong> ${esc(a.job_title || '–')}</p>
+          <p class="mb-1"><strong>Degree:</strong> ${esc(a.degree || '–')}</p>
+          <p class="mb-1"><strong>Experience:</strong> ${a.experience_years !== null ? a.experience_years + ' years' : '–'}</p>
+          <p class="mb-1"><strong>Age:</strong> ${a.age || '–'}</p>
+          <p class="mb-0"><strong>Gender:</strong> ${a.gender || '–'}</p>
+        </div>
+      </div>
+      ${a.cover_letter ? `
+      <div class="col-12">
+        <div class="p-3 rounded" style="background:#fffdf0;border:1px solid #f7b731">
+          <h6 class="fw-bold mb-2" style="color:#0a2342"><i class="bi bi-chat-quote me-2"></i>Cover Letter</h6>
+          <p class="mb-0" style="white-space:pre-wrap">${esc(a.cover_letter)}</p>
+        </div>
+      </div>` : ''}
+      <div class="col-12">
+        <button class="btn btn-success btn-sm" onclick="bootstrap.Modal.getInstance(document.getElementById('appDetailModal')).hide(); openReply(${a.id}, '${esc(a.applicant_name)}', '${esc(a.applicant_email)}', '${esc(a.job_title||'')}')">
+          <i class="bi bi-reply me-1"></i> Reply Karein
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+// ── REPLY ──────────────────────────────────────────────────
+function openReply(appId, name, email, jobTitle) {
+  document.getElementById('reply-app-id').value = appId;
+  document.getElementById('reply-to-info').innerHTML =
+    `<strong>${esc(name)}</strong> &lt;${esc(email)}&gt;<br>
+     <small class="text-muted">Job: ${esc(jobTitle)}</small>`;
+  document.getElementById('reply-message').value = '';
+  new bootstrap.Modal(document.getElementById('replyModal')).show();
+}
+
+async function sendReply() {
+  const appId = document.getElementById('reply-app-id').value;
+  const msg   = document.getElementById('reply-message').value.trim();
+  if (!msg) { toast('Message likhein pehle!', 'error'); return; }
+
+  const btn = document.getElementById('send-reply-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Sending...';
+
+  const r = await apiPost(ADMIN_API + '?action=reply', { application_id: appId, message: msg });
+  btn.disabled = false; btn.innerHTML = '<i class="bi bi-send me-1"></i> Send Reply';
+
+  if (r.success) {
+    toast('Reply save ho gaya! ✅');
+    bootstrap.Modal.getInstance(document.getElementById('replyModal')).hide();
+  } else {
+    toast(r.error || 'Error sending reply.', 'error');
+  }
+}
+
+// ── PENDING JOBS ────────────────────────────────────────────
+async function loadPendingJobs() {
+  const container = document.getElementById('pending-jobs-list');
+  if (!container) return;
+  container.innerHTML = '<p class="text-muted text-center py-3">Loading...</p>';
+
+  const r = await apiGet('api/post_job.php?action=pending');
+  if (!r.success) { container.innerHTML = '<p class="text-danger text-center">Load nahi ho saka.</p>'; return; }
+
+  const jobs = r.data.jobs;
+  const pCount = jobs.filter(j => j.status === 'pending').length;
+  const el = document.getElementById('pending-count');
+  if (el) el.textContent = pCount;
+
+  if (!jobs.length) {
+    container.innerHTML = '<p class="text-muted text-center py-3">Koi pending job nahi hai.</p>';
+    return;
+  }
+
+  container.innerHTML = jobs.map(j => `
+    <div class="border rounded-3 p-3 mb-3" style="background:${j.status==='pending'?'#fffde7':j.status==='approved'?'#f1f8e9':'#fce4ec'}">
+      <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+        <div>
+          <div class="fw-700" style="font-size:1rem">${j.title}</div>
+          <div class="text-muted" style="font-size:.85rem">${j.company} &middot; ${j.job_type} &middot; ${j.location||'N/A'}</div>
+          <div class="text-muted" style="font-size:.78rem">By: <strong>${j.poster_name}</strong> (${j.poster_email}) &middot; ${new Date(j.submitted_at).toLocaleDateString('en-PK')}</div>
+          ${j.description ? `<div class="mt-2" style="font-size:.83rem;color:#555">${j.description.substring(0,150)}${j.description.length>150?'…':''}</div>` : ''}
+        </div>
+        <span class="status-badge ${j.status}" style="white-space:nowrap">
+          ${j.status==='pending'?'⏳ Pending':j.status==='approved'?'✅ Approved':'❌ Rejected'}
+        </span>
+      </div>
+      ${j.status === 'pending' ? `
+      <div class="d-flex gap-2 mt-3 flex-wrap">
+        <button class="btn btn-sm btn-success" onclick="approveJob(${j.id})"><i class="bi bi-check-circle me-1"></i>Approve & Publish</button>
+        <button class="btn btn-sm btn-danger" onclick="rejectJobPrompt(${j.id})"><i class="bi bi-x-circle me-1"></i>Reject</button>
+      </div>` : ''}
+      ${j.admin_note ? `<div class="mt-2 text-danger" style="font-size:.82rem"><i class="bi bi-chat-left me-1"></i>${j.admin_note}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+async function approveJob(id) {
+  if (!confirm('Is job ko approve karke publish karein?')) return;
+  const r = await apiPost('api/post_job.php?action=approve', { id });
+  if (r.success) { toast('Job publish ho gayi! ✅'); loadPendingJobs(); loadStats(); }
+  else toast(r.error || 'Error', 'error');
+}
+
+async function rejectJobPrompt(id) {
+  const note = prompt('Rejection reason (optional):') ?? '';
+  const r = await apiPost('api/post_job.php?action=reject', { id, note });
+  if (r.success) { toast('Job reject ho gayi.'); loadPendingJobs(); }
+  else toast(r.error || 'Error', 'error');
+}
+
+// ── MESSAGES ───────────────────────────────────────────────
+async function loadMessages() {
+  const r = await apiGet(ADMIN_API + '?action=messages');
+  const container = document.getElementById('messages-list');
+  if (!r.success) { container.innerHTML = '<p class="text-danger">Error.</p>'; return; }
+
+  const msgs = r.data.messages;
+  if (!msgs.length) {
+    container.innerHTML = '<p class="text-center text-muted py-4">Koi message nahi hai abhi.</p>';
+    return;
+  }
+
+  container.innerHTML = msgs.map(m => `
+    <div class="border rounded p-3 mb-3 ${m.is_read=='0' ? 'border-warning' : ''}" style="background:${m.is_read=='0'?'#fffdf0':'#fff'}">
+      <div class="d-flex align-items-start justify-content-between flex-wrap gap-2">
+        <div>
+          <div class="fw-bold">${esc(m.name)} 
+            ${m.is_read=='0' ? '<span class="badge bg-warning text-dark ms-1" style="font-size:.65rem">New</span>' : ''}
+          </div>
+          <small class="text-muted"><a href="mailto:${esc(m.email)}">${esc(m.email)}</a> · ${formatDate(m.sent_at)}</small>
+          ${m.subject ? `<div class="mt-1 fw-600" style="font-size:.9rem">Subject: ${esc(m.subject)}</div>` : ''}
+        </div>
+        ${m.is_read=='0' ? `
+          <button class="btn btn-xs btn-outline-secondary" onclick="markRead(${m.id}, this)">
+            <i class="bi bi-check2"></i> Mark Read
+          </button>` : ''}
+      </div>
+      <div class="mt-2 pt-2 border-top" style="white-space:pre-wrap;font-size:.9rem">${esc(m.message)}</div>
+    </div>
+  `).join('');
+}
+
+async function markRead(id, btn) {
+  const r = await apiPost(ADMIN_API + '?action=mark_read', { id });
+  if (r.success) { toast('Read mark ho gaya!'); loadMessages(); loadStats(); }
+}
+
+// ── Utils ──────────────────────────────────────────────────
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function formatDate(d) {
+  if (!d) return '–';
+  return new Date(d).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+}
+
+// ── INIT ───────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  const user = await checkAuth();
+  if (!user) return;
+  loadStats();
+});
+</script>
+</body>
+</html>

@@ -15,6 +15,15 @@
       --admin-bg:      #f0f4f8;
     }
     body { background: var(--admin-bg); min-height: 100vh; }
+    #admin-wrapper { display: none; }
+    #access-denied {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      min-height: 100vh; background: var(--admin-bg); text-align: center; padding: 2rem;
+    }
+    #auth-checking {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      min-height: 100vh; background: var(--admin-bg); text-align: center;
+    }
 
     /* ── Sidebar ── */
     #admin-sidebar {
@@ -139,6 +148,23 @@
 <body>
 
 <div id="toast-container"></div>
+
+<!-- Auth checking screen -->
+<div id="auth-checking">
+  <div class="spinner-border text-primary mb-3" style="width:3rem;height:3rem"></div>
+  <p style="color:#666;font-family:sans-serif">Verifying access…</p>
+</div>
+
+<!-- Access denied screen -->
+<div id="access-denied" style="display:none">
+  <div style="font-size:4rem">🔒</div>
+  <h2 style="font-family:sans-serif;font-weight:800;color:#0a2342;margin-top:1rem">Access Restricted</h2>
+  <p style="color:#666;max-width:380px;margin:.75rem auto 1.5rem">This area is reserved for authorised administrators only. You do not have permission to view this page.</p>
+  <a href="index.html" class="btn btn-primary px-4" style="background:#0a2342;border:none;border-radius:10px;font-weight:700"><i class="bi bi-arrow-left me-2"></i>Return to Home</a>
+</div>
+
+<!-- Admin panel (hidden until auth confirmed) -->
+<div id="admin-wrapper">
 
 <!-- ── SIDEBAR ── -->
 <div id="admin-sidebar">
@@ -412,6 +438,7 @@
   </div>
 
 </div><!-- /admin-main -->
+</div><!-- /admin-wrapper -->
 
 <!-- ══ APPLICATION DETAIL MODAL ══ -->
 <div class="modal fade" id="appDetailModal" tabindex="-1">
@@ -493,15 +520,16 @@ async function apiPost(url, data) {
 // ── Auth check ─────────────────────────────────────────────
 async function checkAuth() {
   const r = await apiGet(AUTH_API + '?action=me');
-  if (!r.success) {
-    window.location.href = 'index.html';
+  document.getElementById('auth-checking').style.display = 'none';
+  if (!r.success || !r.data.user) {
+    document.getElementById('access-denied').style.display = 'flex';
     return null;
   }
   if (r.data.user.role !== 'admin') {
-    alert('Admin access sirf admin k liye hai!');
-    window.location.href = 'index.html';
+    document.getElementById('access-denied').style.display = 'flex';
     return null;
   }
+  document.getElementById('admin-wrapper').style.display = 'flex';
   document.getElementById('admin-name').textContent = r.data.user.name;
   return r.data.user;
 }

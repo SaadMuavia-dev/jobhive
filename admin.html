@@ -353,11 +353,11 @@
           </div>
           <div class="col-12">
             <label class="form-label fw-600">Job Description</label>
-            <textarea name="description" class="form-control" rows="4" placeholder="Job description likhein..."></textarea>
+            <textarea name="description" class="form-control" rows="4" placeholder="Describe the role, responsibilities, and work environment…"></textarea>
           </div>
           <div class="col-12">
             <label class="form-label fw-600">Requirements</label>
-            <textarea name="requirements" class="form-control" rows="3" placeholder="Requirements likhein..."></textarea>
+            <textarea name="requirements" class="form-control" rows="3" placeholder="List required skills, qualifications, and experience…"></textarea>
           </div>
           <div class="col-md-6">
             <div class="form-check form-switch mt-2">
@@ -475,7 +475,7 @@
         <div class="mb-3">
           <label class="form-label fw-bold">Message / Reply *</label>
           <textarea id="reply-message" class="form-control" rows="5" 
-            placeholder="Applicant ko apna reply likhein...&#10;Mithalan: Aap ka application review ho gaya hai. Hum aap se contact karein ge..."></textarea>
+            placeholder="Write your reply to the applicant…&#10;Example: Your application has been reviewed. We will be in touch with you shortly."></textarea>
         </div>
       </div>
       <div class="modal-footer">
@@ -603,7 +603,7 @@ async function loadJobs() {
   if (!r.success) { tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Error loading jobs.</td></tr>'; return; }
 
   const jobs = r.data.jobs;
-  if (!jobs.length) { tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">Koi job post nahi hai abhi.</td></tr>'; return; }
+  if (!jobs.length) { tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">No job listings have been posted yet.</td></tr>'; return; }
 
   tbody.innerHTML = jobs.map(j => `
     <tr>
@@ -636,14 +636,14 @@ async function loadJobs() {
 
 async function toggleJob(id) {
   const r = await apiPost(ADMIN_API + '?action=toggle_job', { id });
-  if (r.success) { toast('Job status update ho gaya!'); loadJobs(); }
+  if (r.success) { toast('Job status updated successfully.'); loadJobs(); }
   else toast(r.error || 'Error.', 'error');
 }
 
 async function deleteJob(id, title) {
-  if (!confirm(`"${title}" delete karna chahte ho?`)) return;
+  if (!confirm(`Are you sure you want to delete the job "${title}"? This action cannot be undone.`)) return;
   const r = await apiPost(ADMIN_API + '?action=delete_job', { id });
-  if (r.success) { toast('Job delete ho gaya!', 'success'); loadJobs(); loadStats(); }
+  if (r.success) { toast('Job deleted successfully.', 'success'); loadJobs(); loadStats(); }
   else toast(r.error || 'Error.', 'error');
 }
 
@@ -673,7 +673,7 @@ document.getElementById('add-job-form').addEventListener('submit', async (e) => 
   btn.disabled = false; btn.innerHTML = '<i class="bi bi-send me-1"></i> Post Job';
 
   if (r.success) {
-    toast('Job post ho gaya! 🎉');
+    toast('Job posted successfully! 🎉');
     e.target.reset();
     showSection('jobs');
   } else {
@@ -690,7 +690,7 @@ async function loadApplications() {
   if (!r.success) { tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Error.</td></tr>'; return; }
 
   const apps = r.data.applications;
-  if (!apps.length) { tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">Koi application nahi mili.</td></tr>'; return; }
+  if (!apps.length) { tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">No applications found.</td></tr>'; return; }
 
   const statusColors = {
     pending:'badge-pending', reviewed:'badge-reviewed',
@@ -730,7 +730,7 @@ async function loadApplications() {
 
 async function updateStatus(id, status) {
   const r = await apiPost(ADMIN_API + '?action=update_status', { id, status });
-  if (r.success) toast('Status update ho gaya!');
+  if (r.success) toast('Status updated successfully.');
   else toast(r.error || 'Error.', 'error');
 }
 
@@ -776,7 +776,7 @@ async function viewApp(id) {
       </div>` : ''}
       <div class="col-12">
         <button class="btn btn-success btn-sm" onclick="bootstrap.Modal.getInstance(document.getElementById('appDetailModal')).hide(); openReply(${a.id}, '${esc(a.applicant_name)}', '${esc(a.applicant_email)}', '${esc(a.job_title||'')}')">
-          <i class="bi bi-reply me-1"></i> Reply Karein
+          <i class="bi bi-reply me-1"></i> Reply to Applicant
         </button>
       </div>
     </div>
@@ -796,7 +796,7 @@ function openReply(appId, name, email, jobTitle) {
 async function sendReply() {
   const appId = document.getElementById('reply-app-id').value;
   const msg   = document.getElementById('reply-message').value.trim();
-  if (!msg) { toast('Message likhein pehle!', 'error'); return; }
+  if (!msg) { toast('Please write a message before sending.', 'error'); return; }
 
   const btn = document.getElementById('send-reply-btn');
   btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Sending...';
@@ -805,7 +805,7 @@ async function sendReply() {
   btn.disabled = false; btn.innerHTML = '<i class="bi bi-send me-1"></i> Send Reply';
 
   if (r.success) {
-    toast('Reply save ho gaya! ✅');
+    toast('Reply sent successfully. ✅');
     bootstrap.Modal.getInstance(document.getElementById('replyModal')).hide();
   } else {
     toast(r.error || 'Error sending reply.', 'error');
@@ -819,7 +819,7 @@ async function loadPendingJobs() {
   container.innerHTML = '<p class="text-muted text-center py-3">Loading...</p>';
 
   const r = await apiGet('api/post_job.php?action=pending');
-  if (!r.success) { container.innerHTML = '<p class="text-danger text-center">Load nahi ho saka.</p>'; return; }
+  if (!r.success) { container.innerHTML = '<p class="text-danger text-center">Failed to load pending jobs. Please try again.</p>'; return; }
 
   const jobs = r.data.jobs;
   const pCount = jobs.filter(j => j.status === 'pending').length;
@@ -827,7 +827,7 @@ async function loadPendingJobs() {
   if (el) el.textContent = pCount;
 
   if (!jobs.length) {
-    container.innerHTML = '<p class="text-muted text-center py-3">Koi pending job nahi hai.</p>';
+    container.innerHTML = '<p class="text-muted text-center py-3">No pending job submissions at this time.</p>';
     return;
   }
 
@@ -837,7 +837,7 @@ async function loadPendingJobs() {
         <div>
           <div class="fw-700" style="font-size:1rem">${j.title}</div>
           <div class="text-muted" style="font-size:.85rem">${j.company} &middot; ${j.job_type} &middot; ${j.location||'N/A'}</div>
-          <div class="text-muted" style="font-size:.78rem">By: <strong>${j.poster_name}</strong> (${j.poster_email}) &middot; ${new Date(j.submitted_at).toLocaleDateString('en-PK')}</div>
+          <div class="text-muted" style="font-size:.78rem">By: <strong>${j.poster_name}</strong> (${j.poster_email}) &middot; ${new Date(j.submitted_at).toLocaleDateString('en-GB')}</div>
           ${j.description ? `<div class="mt-2" style="font-size:.83rem;color:#555">${j.description.substring(0,150)}${j.description.length>150?'…':''}</div>` : ''}
         </div>
         <span class="status-badge ${j.status}" style="white-space:nowrap">
@@ -855,16 +855,16 @@ async function loadPendingJobs() {
 }
 
 async function approveJob(id) {
-  if (!confirm('Is job ko approve karke publish karein?')) return;
+  if (!confirm('Are you sure you want to approve and publish this job?')) return;
   const r = await apiPost('api/post_job.php?action=approve', { id });
-  if (r.success) { toast('Job publish ho gayi! ✅'); loadPendingJobs(); loadStats(); }
+  if (r.success) { toast('Job approved and published successfully. ✅'); loadPendingJobs(); loadStats(); }
   else toast(r.error || 'Error', 'error');
 }
 
 async function rejectJobPrompt(id) {
   const note = prompt('Rejection reason (optional):') ?? '';
   const r = await apiPost('api/post_job.php?action=reject', { id, note });
-  if (r.success) { toast('Job reject ho gayi.'); loadPendingJobs(); }
+  if (r.success) { toast('Job submission rejected.'); loadPendingJobs(); }
   else toast(r.error || 'Error', 'error');
 }
 
@@ -876,7 +876,7 @@ async function loadMessages() {
 
   const msgs = r.data.messages;
   if (!msgs.length) {
-    container.innerHTML = '<p class="text-center text-muted py-4">Koi message nahi hai abhi.</p>';
+    container.innerHTML = '<p class="text-center text-muted py-4">No contact messages received yet.</p>';
     return;
   }
 
@@ -902,7 +902,7 @@ async function loadMessages() {
 
 async function markRead(id, btn) {
   const r = await apiPost(ADMIN_API + '?action=mark_read', { id });
-  if (r.success) { toast('Read mark ho gaya!'); loadMessages(); loadStats(); }
+  if (r.success) { toast('Message marked as read.'); loadMessages(); loadStats(); }
 }
 
 // ── Utils ──────────────────────────────────────────────────

@@ -236,3 +236,16 @@ CREATE TABLE IF NOT EXISTS pending_jobs (
   INDEX idx_status  (status),
   INDEX idx_user    (user_id)
 ) ENGINE=InnoDB;
+
+-- ── Seed Jobs (demo data for admin panel) ──────────────────────
+INSERT IGNORE INTO jobs (id, title, company, location, is_remote, job_type, salary_min, salary_max, salary_currency, description, requirements, category, is_featured, is_active) VALUES
+(1, 'Senior UI/UX Designer',       'PixelCraft Studio',   'Remote',          1, 'full-time',  80000,  110000, 'USD', 'Lead design for our SaaS product suite.',        'Figma, 4+ yrs experience, portfolio required.',   'Design',     1, 1),
+(2, 'Full Stack Developer',         'NexaTech Solutions',  'Lahore, PK',      0, 'full-time',  90000,  130000, 'USD', 'Build and maintain scalable web applications.',   'React, Node.js, PostgreSQL, 3+ yrs.',             'Technology', 1, 1),
+(3, 'Digital Marketing Manager',    'BrandBoost Agency',   'Karachi, PK',     0, 'full-time',  60000,   85000, 'USD', 'Own digital campaigns across all channels.',     'SEO, SEM, Google Ads, 3+ yrs.',                   'Marketing',  0, 1),
+(4, 'Data Scientist',               'InsightAI Labs',      'Remote',          1, 'full-time', 100000,  140000, 'USD', 'Build ML models and analyse large datasets.',    'Python, TensorFlow, SQL, 4+ yrs.',                'Technology', 1, 1),
+(5, 'Product Manager',              'BuildRight Corp',     'Islamabad, PK',   0, 'full-time',  85000,  120000, 'USD', 'Own product roadmap for our core platform.',     'Agile, stakeholder management, 5+ yrs.',          'Management', 0, 1),
+(6, 'Cloud DevOps Engineer',        'SkyOps Infra',        'Remote',          1, 'contract',   95000,  135000, 'USD', 'Manage CI/CD pipelines and cloud infrastructure.','AWS, Terraform, Docker, Kubernetes, 4+ yrs.',     'Technology', 1, 1),
+(7, 'React Native Developer',       'AppForge PK',         'Remote',          1, 'full-time',  70000,  100000, 'USD', 'Build cross-platform mobile apps.',              'React Native, TypeScript, REST APIs, 3+ yrs.',    'Technology', 0, 1),
+(8, 'Financial Analyst',            'PakFinance Group',    'Karachi, PK',     0, 'full-time',  50000,   70000, 'USD', 'Analyse financial data and prepare reports.',    'Excel, accounting principles, CFA preferred.',    'Finance',    0, 1),
+(9, 'Graphic Designer',             'CreativeHub',         'Remote',          1, 'freelance',  30000,   50000, 'USD', 'Create visual assets for digital campaigns.',    'Adobe Suite, branding, 2+ yrs.',                  'Design',     0, 1),
+(10,'Backend Engineer (Python)',    'DataStream PK',       'Remote',          1, 'full-time',  75000,  110000, 'USD', 'Design and maintain RESTful APIs.',              'Python, Django/FastAPI, PostgreSQL, 3+ yrs.',     'Technology', 1, 1);
